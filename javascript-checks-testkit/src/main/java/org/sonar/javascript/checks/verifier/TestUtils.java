@@ -25,9 +25,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import org.sonar.api.config.Settings;
-import org.sonar.javascript.visitors.JavaScriptVisitorContext;
 import org.sonar.javascript.parser.JavaScriptParserBuilder;
 import org.sonar.javascript.tree.symbols.type.JQuery;
+import org.sonar.javascript.visitors.JavaScriptVisitorContext;
 import org.sonar.plugins.javascript.api.tree.ScriptTree;
 import org.sonar.plugins.javascript.api.tree.Tree;
 
@@ -40,6 +40,11 @@ class TestUtils {
 
   public static JavaScriptVisitorContext createContext(File file) {
     ScriptTree scriptTree = (ScriptTree) p.parse(file);
+    return new JavaScriptVisitorContext(scriptTree, file, settings());
+  }
+
+  public static JavaScriptVisitorContext createParallelContext(File file) {
+    ScriptTree scriptTree = (ScriptTree) JavaScriptParserBuilder.createParser(Charsets.UTF_8).parse(file);
     return new JavaScriptVisitorContext(scriptTree, file, settings());
   }
 
