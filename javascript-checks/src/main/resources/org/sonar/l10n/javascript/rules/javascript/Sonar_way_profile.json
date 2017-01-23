@@ -100,6 +100,7 @@
     "S3799",
     "S3800",
     "S3812",
+    "S3834",
     "SwitchWithoutDefault",
     "TooManyBreakOrContinueInLoop",
     "UnreachableCode",

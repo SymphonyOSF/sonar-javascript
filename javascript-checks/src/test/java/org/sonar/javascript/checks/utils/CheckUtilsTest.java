@@ -23,8 +23,10 @@ import com.google.common.base.Charsets;
 import com.sonar.sslr.api.typed.ActionParser;
 import org.junit.Test;
 import org.sonar.javascript.parser.JavaScriptParserBuilder;
+import org.sonar.plugins.javascript.api.tree.ModuleTree;
 import org.sonar.plugins.javascript.api.tree.ScriptTree;
 import org.sonar.plugins.javascript.api.tree.Tree;
+import org.sonar.plugins.javascript.api.tree.Tree.Kind;
 import org.sonar.plugins.javascript.api.tree.declaration.FunctionDeclarationTree;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,4 +52,18 @@ public class CheckUtilsTest {
     assertThat(CheckUtils.isDescendant(scriptTree, functionDeclarationTree)).isFalse();
     assertThat(CheckUtils.isDescendant(functionDeclarationTree.functionKeyword(), functionDeclarationTree.parameterClause())).isFalse();
   }
+
+  @Test
+  public void getFirstAncestor() throws Exception {
+    ScriptTree scriptTree = (ScriptTree) p.parse("function foo() { function bar() {} }");
+    ModuleTree moduleTree = scriptTree.items();
+    FunctionDeclarationTree fooTree = (FunctionDeclarationTree) moduleTree.items().get(0);
+    FunctionDeclarationTree barTree = (FunctionDeclarationTree) fooTree.body().statements().get(0);
+
+    assertThat(CheckUtils.getFirstAncestor(barTree, Kind.FUNCTION_DECLARATION)).isEqualTo(fooTree);
+    assertThat(CheckUtils.getFirstAncestor(barTree, Kind.MODULE)).isEqualTo(moduleTree);
+    assertThat(CheckUtils.getFirstAncestor(barTree, Kind.SCRIPT)).isEqualTo(scriptTree);
+    assertThat(CheckUtils.getFirstAncestor(barTree, Kind.CLASS_DECLARATION)).isNull();
+  }
+
 }

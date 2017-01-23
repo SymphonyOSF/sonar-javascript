@@ -106,5 +106,16 @@ public class CheckUtils {
     }
     return false;
   }
-}
 
+  public static Tree getFirstAncestor(Tree tree, Kind... kind) {
+    Tree ancestor = parent(tree);
+    while (ancestor != null) {
+      if (ancestor.is(kind)) {
+        return ancestor;
+      }
+      ancestor = parent(ancestor);
+    }
+    return ancestor;
+  }
+
+}

@@ -173,6 +173,7 @@ public final class CheckList {
       StringsComparisonCheck.class,
       SwitchWithNotEnoughCaseCheck.class,
       SwitchWithoutDefaultCheck.class,
+      SymbolUsedAsConstructorCheck.class,
       TabCharacterCheck.class,
       TemplateStringMisuseCheck.class,
       TodoTagPresenceCheck.class,
