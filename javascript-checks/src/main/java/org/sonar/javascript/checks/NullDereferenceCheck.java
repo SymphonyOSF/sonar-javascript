@@ -27,6 +27,7 @@ import org.sonar.javascript.se.Constraint;
 import org.sonar.javascript.se.Nullability;
 import org.sonar.javascript.se.ProgramState;
 import org.sonar.javascript.se.SeCheck;
+import org.sonar.javascript.tree.impl.JavaScriptTree;
 import org.sonar.javascript.tree.symbols.Scope;
 import org.sonar.plugins.javascript.api.symbols.Symbol;
 import org.sonar.plugins.javascript.api.tree.Tree;
@@ -60,7 +61,6 @@ public class NullDereferenceCheck extends SeCheck {
         hasIssue.add(symbol);
       }
     }
-
   }
 
   private static Symbol getSymbol(@Nullable ExpressionTree object) {
@@ -74,6 +74,9 @@ public class NullDereferenceCheck extends SeCheck {
   private static ExpressionTree getObject(Tree element) {
     if (element.is(Kind.BRACKET_MEMBER_EXPRESSION, Kind.DOT_MEMBER_EXPRESSION)) {
       return ((MemberExpressionTree) element).object();
+    }
+    if (element.is(Kind.IDENTIFIER_REFERENCE) && ((JavaScriptTree) element).getParent().is(Kind.FOR_OF_STATEMENT)) {
+      return (ExpressionTree) element;
     }
     return null;
   }
