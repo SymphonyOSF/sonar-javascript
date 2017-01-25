@@ -30,6 +30,7 @@ import org.sonar.plugins.javascript.api.tree.Tree.Kind;
 import org.sonar.plugins.javascript.api.tree.declaration.FunctionTree;
 import org.sonar.plugins.javascript.api.tree.declaration.MethodDeclarationTree;
 import org.sonar.plugins.javascript.api.tree.expression.ClassTree;
+import org.sonar.plugins.javascript.api.tree.expression.ExpressionTree;
 import org.sonar.plugins.javascript.api.tree.expression.IdentifierTree;
 import org.sonar.plugins.javascript.api.visitors.DoubleDispatchVisitor;
 import org.sonar.plugins.javascript.api.visitors.DoubleDispatchVisitorCheck;
@@ -62,7 +63,7 @@ public class SuperInvocationCheck extends DoubleDispatchVisitorCheck {
   }
 
   private void checkSuperMustBeInvokedInAnyDerivedClassConstructor(MethodDeclarationTree method) {
-    if (isConstructor(method) && !isInBaseClass(method)) {
+    if (isConstructor(method) && !isInBaseClass(method) && !isInDummyDerivedClass(method)) {
       boolean foundSuperInvocation = false;
       Set<SuperTreeImpl> superTrees = new SuperDetector().detectIn(method);
       for (SuperTreeImpl superTree : superTrees) {
@@ -86,6 +87,15 @@ public class SuperInvocationCheck extends DoubleDispatchVisitorCheck {
     return classTree.extendsToken() == null;
   }
 
+  /**
+   * Returns true if the class of the specified method extends "null", else returns false.
+   * It is assumed that the class is a derived class.
+   */
+  private boolean isInDummyDerivedClass(MethodDeclarationTree method) {
+    ClassTree classTree = getEnclosingClass(method);
+    return classTree.superClass().is(Kind.NULL_LITERAL);
+  }
+  
   private MethodDeclarationTree getEnclosingConstructor(Tree tree) {
     FunctionTree function = (FunctionTree) CheckUtils.getFirstAncestor(tree, Kind.METHOD, Kind.FUNCTION_DECLARATION, Kind.FUNCTION_EXPRESSION);
     if (function != null && isConstructor(function)) {
