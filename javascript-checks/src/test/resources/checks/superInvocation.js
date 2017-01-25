@@ -115,7 +115,7 @@ class A20 {
   foo() {}
 }
 
-class B20a {
+class B20a extends A20 {
   constructor(x, y) {
     bar();
     super(x);                // OK
@@ -126,20 +126,38 @@ class B20a {
   }
 }
 
-class B20b {
+class B20a extends A20 {
   constructor(x, y) {
+    super(x);                // OK
     this.y = y;
-    super(x);                // Noncompliant {{super() must be invoked before "this|super" can be used.}}
-//  ^^^^^
+    super(x);                // OK
   }
 }
 
-class B20c {
+class B20b extends A20 {
   constructor(x, y) {
+    this.y = y;
+    super.x = x + y;
+    this.foo();
+    bar(super.x);
+    super(x);                // Noncompliant [[secondary=-1,-2,-3,-4]] {{super() must be invoked before "this" or "super" can be used.}}
+//  ^^^^^
     super.foo();
-    super(x);                // Noncompliant {{super() must be invoked before "this|super" can be used.}}
   }
 }
+
+class B20c extends A20 {
+  constructor(x, y) {
+    this.foo(super(x));      // Noncompliant [[secondary=0]] {{super() must be invoked before "this" or "super" can be used.}}
+  }
+}
+
+//class B20d {
+//  constructor(x, y) {
+//    super.foo();
+//    super(x);                // Noncompliant [[secondary=-1]] {{super() must be invoked before "this" or "super" can be used.}}
+//  }
+//}
 
 //-------------------------------------------------------------------------------------------------
 
@@ -161,7 +179,7 @@ class A31 {
 
 class B31 extends A31 {
   constructor() {
-    super(x, y);             // Noncompliant {{AAAsuper() must be invoked with 1 argument.}}
+    super(x, y);             // Noncompliant {{super() must be invoked with 1 argument.}}
   }
 }
 
@@ -171,6 +189,19 @@ class A32 {
 
 class B32 extends A32 {
   constructor() {
-    super(x, y);             // Noncompliant {{AAAsuper() must be invoked with 3 arguments.}}
+    super(x, y);             // Noncompliant {{super() must be invoked with 3 arguments.}}
+  }
+}
+
+//-------------------------------------------------------------------------------------------------
+
+class A40 {
+}
+
+class B40 extends A40 {
+  constructor() {
+    super();
+    super();                 // Noncompliant [[secondary=-1]] {{super() can only be invoked once.}}
+    super();                 // Noncompliant [[secondary=-2]] {{super() can only be invoked once.}}
   }
 }
