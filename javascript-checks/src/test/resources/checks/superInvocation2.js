@@ -86,4 +86,3 @@ function foo() {
 function constructor() {
   super();                   // Noncompliant {{super() can only be invoked in a derived class constructor.}}
 }
-
