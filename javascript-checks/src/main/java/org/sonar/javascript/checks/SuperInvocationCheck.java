@@ -20,8 +20,6 @@
 package org.sonar.javascript.checks;
 
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import org.sonar.check.Rule;
@@ -83,34 +81,20 @@ public class SuperInvocationCheck extends DoubleDispatchVisitorCheck {
     return getEnclosingConstructor(tree) != null;
   }
 
-  private boolean isInBaseClass(Tree tree) {
-    ClassTree classTree = getEnclosingClass(tree);
+  private boolean isInBaseClass(MethodDeclarationTree method) {
+    ClassTree classTree = getEnclosingClass(method);
     return classTree.extendsToken() == null;
   }
 
-  /**
-   * Gets the constructor() which encloses the specified tree.
-   * Returns null if the specified tree is not enclosed in a constructor.
-   */
   private MethodDeclarationTree getEnclosingConstructor(Tree tree) {
-    Tree function = CheckUtils.getFirstAncestor(tree, Kind.METHOD, Kind.FUNCTION_DECLARATION, Kind.FUNCTION_EXPRESSION);
+    FunctionTree function = (FunctionTree) CheckUtils.getFirstAncestor(tree, Kind.METHOD, Kind.FUNCTION_DECLARATION, Kind.FUNCTION_EXPRESSION);
     if (function != null && isConstructor(function)) {
       return (MethodDeclarationTree) function;
     }
-//    if (function != null && function.is(Kind.METHOD)) {
-//      MethodDeclarationTree constructor = (MethodDeclarationTree) function;
-//      Tree nameTree = constructor.name();
-//      if (nameTree.is(Kind.IDENTIFIER_NAME)) {
-//        String name = ((IdentifierTree) nameTree).name();
-//        if ("constructor".equals(name)) {
-//          return constructor;
-//        }
-//      }
-//    }
     return null;
   }
 
-  private boolean isConstructor(Tree tree) {
+  private boolean isConstructor(FunctionTree tree) {
     if (tree.is(Kind.METHOD)) {
       MethodDeclarationTree constructor = (MethodDeclarationTree) tree;
       Tree nameTree = constructor.name();
@@ -124,18 +108,12 @@ public class SuperInvocationCheck extends DoubleDispatchVisitorCheck {
     return false;
   }
   
-  /**
-   * Gets the class which encloses the specified tree.
-   * The specified tree is assumed to be enclosed within a constructor.
-   */
   private ClassTree getEnclosingClass(Tree tree) {
     return (ClassTree) CheckUtils.getFirstAncestor(tree, Kind.CLASS_DECLARATION, Kind.CLASS_EXPRESSION);
   }
   
   /**
-   * An object to find the occurrences of "super" in a function.
-   * @author yvesdubois-pelerin
-   *
+   * An object to find the SuperTreeImpl's in a function.
    */
   private static class SuperDetector extends DoubleDispatchVisitor {
     
