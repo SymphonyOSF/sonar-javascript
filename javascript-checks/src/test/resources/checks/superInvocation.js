@@ -7,6 +7,14 @@ class A1 {
 class B1 extends A1 {
   constructor() {
     super();                 // OK
+    super.x = 1;
+  }
+}
+
+var B1b = class extends A1 {
+  constructor() {
+    super();                 // OK
+    super.x = 1;
   }
 }
 
@@ -27,6 +35,15 @@ class A2 {
 }
 
 class B2 extends A2 {
+  constructor() {
+    super();                 // OK
+    this.f = function() {
+      super();               // Noncompliant {{super() can only be invoked in a derived class constructor.}}
+    }
+  }
+}
+
+var B2b = class extends A2 {
   constructor() {
     super();                 // OK
     this.f = function() {

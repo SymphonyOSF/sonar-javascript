@@ -4,9 +4,16 @@ class A1 {
   }
 }
 
-class B1 extends A1 {
+class B1a extends A1 {
   constructor() {
     super();                 // OK
     super.a = 1;
   }
 }
+
+var B1b = class extends A1 {
+  constructor() {
+    super();                 // OK
+    super.a = 1;
+  }
+} 

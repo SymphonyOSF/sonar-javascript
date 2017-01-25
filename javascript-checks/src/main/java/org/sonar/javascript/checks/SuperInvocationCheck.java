@@ -24,6 +24,9 @@ import org.sonar.javascript.checks.utils.CheckUtils;
 import org.sonar.javascript.tree.impl.expression.SuperTreeImpl;
 import org.sonar.plugins.javascript.api.tree.Tree;
 import org.sonar.plugins.javascript.api.tree.Tree.Kind;
+import org.sonar.plugins.javascript.api.tree.declaration.MethodDeclarationTree;
+import org.sonar.plugins.javascript.api.tree.expression.ClassTree;
+import org.sonar.plugins.javascript.api.tree.expression.IdentifierTree;
 import org.sonar.plugins.javascript.api.visitors.DoubleDispatchVisitorCheck;
 
 @Rule(key = "S3854")
@@ -39,25 +42,46 @@ public class SuperInvocationCheck extends DoubleDispatchVisitorCheck {
   }
 
   private void checkSuperCanOnlyBeInvokedInDerivedClassConstructor(SuperTreeImpl superTree) {
-    boolean mustRaiseIssue = true;
-    
-    if (superTree.getParent().is(Kind.CALL_EXPRESSION) && isInConstructor(superTree) && isInDerivedClass(superTree)) {
-      mustRaiseIssue = false;
-    }
-    
-    if (mustRaiseIssue) {
+    if (superTree.getParent().is(Kind.CALL_EXPRESSION) &&
+       (!isInConstructor(superTree) || isInBaseClass(superTree))) {
       addIssue(superTree, MESSAGE_SUPER_ONLY_IN_DERIVED_CLASS_CONSTRUCTOR);
     }
   }
-  
-  private boolean isInDerivedClass(SuperTreeImpl superTree) {
-    return true;
-  }
 
   private boolean isInConstructor(Tree tree) {
-    return true;
+    return getConstructor(tree) != null;
   }
 
-
+  private boolean isInBaseClass(SuperTreeImpl superTree) {
+    ClassTree classTree = getClass(superTree);
+    return classTree.extendsToken() == null;
+  }
+  
+  /**
+   * Gets the constructor() which encloses the specified tree.
+   * Returns null if the specified tree is not enclosed in a constructor.
+   */
+  private MethodDeclarationTree getConstructor(Tree tree) {
+    Tree function = CheckUtils.getFirstAncestor(tree, Kind.METHOD);
+    if (function != null) {
+      MethodDeclarationTree constructor = (MethodDeclarationTree) function;
+      Tree nameTree = constructor.name();
+      if (nameTree.is(Kind.IDENTIFIER_NAME)) {
+        String name = ((IdentifierTree)nameTree).name();
+        if ("constructor".equals(name)) {
+          return constructor;
+        }
+      }
+    }
+    return null;
+  }
+  
+  /**
+   * Gets the class which encloses the specified tree.
+   * The specified tree is assumed to be enclosed within a constructor.
+   */
+  private ClassTree getClass(Tree tree) {
+    return (ClassTree) CheckUtils.getFirstAncestor(getConstructor(tree), Kind.CLASS_DECLARATION, Kind.CLASS_EXPRESSION);
+  }
 
 }
