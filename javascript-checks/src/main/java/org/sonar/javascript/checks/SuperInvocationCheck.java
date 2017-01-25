@@ -62,8 +62,8 @@ public class SuperInvocationCheck extends DoubleDispatchVisitorCheck {
    * Returns null if the specified tree is not enclosed in a constructor.
    */
   private MethodDeclarationTree getConstructor(Tree tree) {
-    Tree function = CheckUtils.getFirstAncestor(tree, Kind.METHOD);
-    if (function != null) {
+    Tree function = CheckUtils.getFirstAncestor(tree, Kind.METHOD, Kind.FUNCTION_DECLARATION, Kind.FUNCTION_EXPRESSION);
+    if (function != null && function.is(Kind.METHOD)) {
       MethodDeclarationTree constructor = (MethodDeclarationTree) function;
       Tree nameTree = constructor.name();
       if (nameTree.is(Kind.IDENTIFIER_NAME)) {

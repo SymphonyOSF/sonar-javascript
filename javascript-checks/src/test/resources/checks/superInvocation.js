@@ -21,7 +21,7 @@ var B1b = class extends A1 {
 class A2 {
   constructor() {
     super();                 // Noncompliant {{super() can only be invoked in a derived class constructor.}}
-//  ^^^^
+//  ^^^^^
     this.f = function() {
       super();               // Noncompliant {{super() can only be invoked in a derived class constructor.}}
     }
