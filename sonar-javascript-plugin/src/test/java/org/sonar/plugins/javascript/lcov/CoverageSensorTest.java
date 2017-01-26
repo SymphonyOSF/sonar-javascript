@@ -96,46 +96,8 @@ public class CoverageSensorTest {
     assertThat(context.lineHits("moduleKey:file1.js", 1)).isNull();
   }
 
-  // note: as of SQ 6.2, there is no more distinction of coverage types
   @Test
-  public void test_ut_coverage() {
-    utCoverageSensor.execute(context, linesOfCode, RUN_WITH_SQ_6_1);
-    Integer[] file1Expected = {2, 2, 1, null};
-    Integer[] file2Expected = {5, 5, null, null};
-
-    for (int line = 1; line <= 4; line++) {
-      assertThat(context.lineHits("moduleKey:file1.js", line)).isEqualTo(file1Expected[line - 1]);
-      assertThat(context.lineHits("moduleKey:file2.js", line)).isEqualTo(file2Expected[line - 1]);
-      assertThat(context.lineHits("moduleKey:file3.js", line)).isNull();
-      assertThat(context.lineHits("moduleKey:tests/file1.js", line)).isNull();
-    }
-
-    assertThat(context.conditions("moduleKey:file1.js", 1)).isNull();
-    assertThat(context.conditions("moduleKey:file1.js", 2)).isEqualTo(4);
-    assertThat(context.coveredConditions("moduleKey:file1.js", 2)).isEqualTo(2);
-  }
-
-  // note: as of SQ 6.2, there is no more distinction of coverage types
-  @Test
-  public void test_it_coverage() {
-    itCoverageSensor.execute(context, linesOfCode, RUN_WITH_SQ_6_1);
-
-    Integer[] file1Expected = {1, 1, 0, null};
-    Integer[] file2Expected = {0, 0, 0, null};
-
-    for (int line = 1; line <= 4; line++) {
-      assertThat(context.lineHits("moduleKey:file1.js", line)).isEqualTo(file1Expected[line - 1]);
-      assertThat(context.lineHits("moduleKey:file2.js", line)).isEqualTo(file2Expected[line - 1]);
-    }
-
-    assertThat(context.conditions("moduleKey:file1.js", 1)).isNull();
-    assertThat(context.conditions("moduleKey:file1.js", 2)).isEqualTo(4);
-    assertThat(context.coveredConditions("moduleKey:file1.js", 2)).isEqualTo(1);
-  }
-
-  // note: as of SQ 6.2, there is no more distinction of coverage types
-  @Test
-  public void test_overall_coverage() {
+  public void test_coverage() {
     overallCoverageSensor.execute(context, linesOfCode, RUN_WITH_SQ_6_1);
 
     Integer[] file1Expected = {3, 3, 1, null};
