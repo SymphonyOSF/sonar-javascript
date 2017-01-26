@@ -392,7 +392,7 @@ public class JavaScriptSquidSensorTest {
   }
 
   @Test
-  public void sq_greater_6_1_still_honor_it_ut_coverage_reports() throws Exception {
+  public void sq_greater_6_1_still_honor_coverage_reports() throws Exception {
     baseDir = new File("src/test/resources/coverage");
     context = SensorContextTester.create(baseDir);
     context.setRuntime(SONAR_RUNTIME_6_2);
@@ -404,7 +404,6 @@ public class JavaScriptSquidSensorTest {
     inputFile("file1.js");
     createSensor().execute(context);
 
-    // note: as of SQ 6.2, there is no more distinction of coverage types
     assertThat(context.lineHits("moduleKey:file1.js", 1)).isEqualTo(6);
   }
 
