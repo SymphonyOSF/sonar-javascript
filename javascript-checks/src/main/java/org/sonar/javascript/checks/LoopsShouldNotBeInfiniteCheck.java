@@ -22,7 +22,6 @@ package org.sonar.javascript.checks;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -79,14 +78,14 @@ public class LoopsShouldNotBeInfiniteCheck extends DoubleDispatchVisitorCheck {
     }
     ControlFlowGraph flowGraph = CheckUtils.buildControlFlowGraph(tree);
     Map<Tree, CfgBlock> treesOfFlowGraph = treesToBlocks(flowGraph);
-    if (isBrokenLoop(tree, flowGraph)) {
+    if (isBrokenLoop(condition, tree, flowGraph)) {
       return false;
     }
     return condition == null || !conditionIsUpdated(condition, (JavaScriptTree) tree, treesOfFlowGraph);
   }
 
-  private static boolean isBrokenLoop(IterationStatementTree loopTree, ControlFlowGraph flowGraph) {
-    Loop loop = new Loop(flowGraph, loopTree);
+  private static boolean isBrokenLoop(@Nullable JavaScriptTree condition, IterationStatementTree loopTree, ControlFlowGraph flowGraph) {
+    Loop loop = new Loop(flowGraph, loopTree, condition);
     return !loop.jumpingExits().isEmpty();
   }
 
@@ -131,22 +130,32 @@ public class LoopsShouldNotBeInfiniteCheck extends DoubleDispatchVisitorCheck {
   }
 
   private static class Loop {
-    private final Optional<CfgBranchingBlock> branchBlock;
+    private final Set<CfgBranchingBlock> branchBlocks;
     private final Set<CfgBlock> loopBlocks;
 
-    Loop(ControlFlowGraph flowGraph, IterationStatementTree iteration) {
-      this.branchBlock = findRootBranchingBlock(flowGraph, iteration);
+    Loop(ControlFlowGraph flowGraph, IterationStatementTree iteration, @Nullable JavaScriptTree condition) {
+      branchBlocks = findRootBranchingBlocks(flowGraph, iteration, condition);
       Set<CfgBlock> foundLoopBlocks = findLoopBlocks((JavaScriptTree) iteration.statement(), treesToBlocks(flowGraph));
-      branchBlock.ifPresent(foundLoopBlocks::add);
+      branchBlocks.forEach(foundLoopBlocks::add);
       this.loopBlocks = foundLoopBlocks;
     }
 
-    private static Optional<CfgBranchingBlock> findRootBranchingBlock(ControlFlowGraph flowGraph, IterationStatementTree iteration) {
+    private static Set<CfgBranchingBlock> findRootBranchingBlocks(ControlFlowGraph flowGraph, IterationStatementTree iteration, @Nullable JavaScriptTree condition) {
       return flowGraph.blocks().stream()
         .filter(cfgBlock -> cfgBlock instanceof CfgBranchingBlock)
         .map(cfgBlock -> (CfgBranchingBlock) cfgBlock)
-        .filter(cfgBranchingBlock -> iteration.equals(cfgBranchingBlock.branchingTree()))
-        .findAny();
+        .filter(cfgBranchingBlock -> {
+          final Tree branchingTree = cfgBranchingBlock.branchingTree();
+          if (iteration.equals(branchingTree)) {
+            return true;
+          }
+          if (condition != null) {
+            return condition.equals(branchingTree)
+              || condition.isAncestorOf((JavaScriptTree) branchingTree);
+          }
+          return false;
+        })
+        .collect(Collectors.toSet());
     }
 
     private static Set<CfgBlock> findLoopBlocks(JavaScriptTree iterationStatement, Map<Tree, CfgBlock> treesOfFlowGraph) {
@@ -155,7 +164,7 @@ public class LoopsShouldNotBeInfiniteCheck extends DoubleDispatchVisitorCheck {
 
     Set<CfgBlock> jumpingExits() {
       Set<CfgBlock> exits = exits();
-      branchBlock.ifPresent(exits::remove);
+      branchBlocks.forEach(exits::remove);
       return exits;
     }
 
